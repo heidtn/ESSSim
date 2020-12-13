@@ -2,6 +2,11 @@ from ESSSim.Supervisor import EvoSupervisor
 from ThermalSim import ThermalNode
 from ThermalSim import ThermalControllerNode, LiveLogNode
 
+"""
+This demo simulates a thermal mass and a thermal PI controller.  It also creates a third node
+to visualize how these systems work together.
+"""
+
 def main():
     thermal_node = ThermalNode()
     temp_sensor_node = ThermalControllerNode(1.0, 1.0)

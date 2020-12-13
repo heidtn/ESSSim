@@ -7,6 +7,9 @@ temperature_group = {"temperature": InputOutput(float, 0)}
 power_group = {"power": InputOutput(float, 0)}
 
 class ThermalNode(StateSpaceNode):
+    """
+    This simulates a conduction thermal mass only with a heater input
+    """
     def __init__(self):
         self.input = InputOutputGroup(power_group)
         self.output = InputOutputGroup(temperature_group)
@@ -27,11 +30,16 @@ class ThermalNode(StateSpaceNode):
 
     def get_state_derivative(self):
         # very very simple conduction only thermal model (Ta - Ts)*UA + Pin where UA is just 1
-        # assuming the environmental boundary conditions are just 25C
+        # assuming the environmental boundary conditions are just 25C and Pin is the power of the
+        # heater in watts
         return np.array([25 - self.state[0] + self.input.power.value])
 
 
 class ThermalControllerNode(TimeDomainNode):
+    """
+    This is a simple PI controller that attempts to get the temperature to 100C.  Its
+    tuned improperly on purpose to show the overshoot of the controller.
+    """
     def __init__(self, Kp, Ki):
         self.input = InputOutputGroup(temperature_group)
         self.output = InputOutputGroup(power_group)

@@ -9,5 +9,5 @@ setup(
     license='LICENSE.txt',
     description='Simulation framework for the EVO space suit',
     long_description=open('README.md').read(),
-    install_requires=[],
+    install_requires=['numpy', 'clive-log'],
 )
