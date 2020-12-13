@@ -33,13 +33,19 @@ class EvoSupervisor:
         #  TODO verify these are correct types
         self.connections.append(Connection(input, output))
         
-    def spin(self):
+    def spin(self, realtime=True, nonrealtime_step=0.1, nonrealtime_speedup=20):
         #  TODO check all node inputs are connected
         #  TODO check each input only has one output (outputs can go to multiple inputs though
         #  TODO iterate through each connection, pass each output to each associated input
         #  then perform one increment
+        if not realtime:
+            curtime = 0
+            self.last_time = 0
         while True:
-            curtime = time.time()
+            if realtime:
+                curtime = time.time()
+            else:
+                curtime += nonrealtime_step
             dt = curtime - self.last_time
             for node in self.nodes:
                 if node.node_type == "state_space":
@@ -52,4 +58,8 @@ class EvoSupervisor:
             for connection in self.connections:
                 connection.input.value = connection.output.value
 
-            self.last_time = time.time()
+            if realtime:
+                self.last_time = time.time()
+            else:
+                self.last_time = curtime
+                time.sleep(nonrealtime_step/nonrealtime_speedup)

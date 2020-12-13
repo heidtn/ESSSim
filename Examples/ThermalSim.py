@@ -20,20 +20,25 @@ class ThermalNode(StateSpaceNode):
 
     def set_state(self, state):
         self.state = state
+        self.output.temperature.value = self.state[0]
 
     def get_state(self):
         return self.state
 
     def get_state_derivative(self):
-        return np.array([self.state[0] - 25 + self.input.power.value])
+        # very very simple conduction only thermal model (Ta - Ts)*UA + Pin where UA is just 1
+        # assuming the environmental boundary conditions are just 25C
+        return np.array([25 - self.state[0] + self.input.power.value])
 
 
 class ThermalControllerNode(TimeDomainNode):
-    def __init__(self):
+    def __init__(self, Kp, Ki):
         self.input = InputOutputGroup(temperature_group)
         self.output = InputOutputGroup(power_group)
         self.state = 0.0
         self.I = 0.0
+        self.Kp = Kp
+        self.Ki = Ki
         self.last_time = None
         
     def get_inputs(self):
@@ -42,13 +47,41 @@ class ThermalControllerNode(TimeDomainNode):
     def get_outputs(self):
         return [self.output]
 
-    def update(self, time):
+    def update(self, current_time):
         if self.last_time == None:
-            self.last_time = time
+            self.last_time = current_time
             return 0.0
         else:
-            dt = time - self.last_time
+            dt = current_time - self.last_time
             error = 100 - self.input.temperature.value
             self.I += error*dt
-            self.output.power.value = error*1.0 + self.I*0.1
-            self.last_time = time
+            self.output.power.value = max(error*self.Kp + self.Ki*1, 0.0)
+            #print(error)
+            self.last_time = current_time
+
+
+class LiveLogNode(TimeDomainNode):
+    def __init__(self):
+        self.input = [InputOutputGroup(temperature_group), InputOutputGroup(power_group)]
+        self.output = None
+        self.logger = clive_log.Context("temperatures")
+        self.logger.add_graph_field("temperature")
+        self.logger.add_text_field("power")
+        self.temperatures = [0]
+        self.last_time = None
+    
+    def get_inputs(self):
+        return self.input
+
+    def get_outputs(self):
+        return [self.output]
+
+    def update(self, current_time):
+        if not self.last_time or (current_time - self.last_time > 5):
+            self.temperatures.append(self.input[0].temperature.value)
+            if(len(self.temperatures) > 100):
+                self.temperatures.pop(0)
+            self.last_time = current_time
+            self.logger.write_text_field("power", self.input[1].power.value)
+            self.logger.update_graph_field("temperature", self.temperatures)
+            self.logger.display()
