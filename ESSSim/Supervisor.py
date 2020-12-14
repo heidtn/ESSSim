@@ -33,20 +33,22 @@ class EvoSupervisor:
         #  TODO verify these are correct types
         self.connections.append(Connection(input, output))
         
-    def spin(self, realtime=True, nonrealtime_step=0.1, nonrealtime_speedup=20):
+    def spin(self, realtime=True, nonrealtime_step=0.01, nonrealtime_speedup=10):
         #  TODO check all node inputs are connected
         #  TODO check each input only has one output (outputs can go to multiple inputs though
         #  TODO iterate through each connection, pass each output to each associated input
         #  then perform one increment
+        starttime = time.time()
         if not realtime:
             curtime = 0
             self.last_time = 0
         while True:
             if realtime:
-                curtime = time.time()
+                curtime = time.time()# - starttime
             else:
                 curtime += nonrealtime_step
             dt = curtime - self.last_time
+            #print("Dt: ", dt)
             for node in self.nodes:
                 if node.node_type == "state_space":
                     # Forward Euler step
@@ -58,8 +60,8 @@ class EvoSupervisor:
             for connection in self.connections:
                 connection.input.value = connection.output.value
 
+            self.last_time = curtime
             if realtime:
-                self.last_time = time.time()
+                time.sleep(0.001) # we lose precision in dt if we don't delay somewhat
             else:
-                self.last_time = curtime
                 time.sleep(nonrealtime_step/nonrealtime_speedup)

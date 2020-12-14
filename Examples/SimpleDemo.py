@@ -9,7 +9,7 @@ to visualize how these systems work together.
 
 def main():
     thermal_node = ThermalNode()
-    temp_sensor_node = ThermalControllerNode(1.0, 1.0)
+    temp_sensor_node = ThermalControllerNode(1.0, 10.0)
     live_log_node = LiveLogNode()
 
     supervisor = EvoSupervisor()
@@ -24,7 +24,9 @@ def main():
     supervisor.connect(controller_outputs[0].power, logger_inputs[1].power)
     supervisor.connect(thermal_outputs[0].temperature, logger_inputs[0].temperature)
 
-    supervisor.spin()
+
+    supervisor.spin(realtime=False, nonrealtime_speedup=1)
+
 
 if __name__ == "__main__":
     main()
