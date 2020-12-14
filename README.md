@@ -7,6 +7,8 @@ As is, this framework is very rudimentary and is not yet versioned.  Future vers
 ### How to use
 this can be installed by changing into the directory in a termal and executing `pip install .`
 
+![demo](demo.gif)
+
 See the SimpleDemo.py in examples for a functioning implementation.  The general idea is that a series of nodes are created.  Nodes have inputs and outputs.  These inputs and outputs can be connected to each other to form a simulated system.  There are two types of nodes:
 * Time Domain Nodes
 * State Space Nodes
